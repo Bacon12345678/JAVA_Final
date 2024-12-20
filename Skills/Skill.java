@@ -48,11 +48,11 @@ public class Skill {
     private double calculateTypeEffectiveness(String attackerType, String defenderType) {
         if ((attackerType.equals("Sky") && defenderType.equals("Land")) ||
             (attackerType.equals("Land") && defenderType.equals("Ocean")) ||
-            (attackerType.equals("Sky") && defenderType.equals("Ocean"))) {
+            (attackerType.equals("Ocean") && defenderType.equals("Sky"))) {
             return 1.5; // 攻擊方克制防禦方
         } else if ((attackerType.equals("Land") && defenderType.equals("Sky")) ||
                    (attackerType.equals("Ocean") && defenderType.equals("Land")) ||
-                   (attackerType.equals("Ocean") && defenderType.equals("Sky"))) {
+                   (attackerType.equals("Sky") && defenderType.equals("Ocean"))) {
             return 0.75; // 攻擊方被防禦方克制
         } else {
             return 1.0; // 無克制
