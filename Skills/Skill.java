@@ -9,16 +9,13 @@ public class Skill {
     private String type;      // 技能類型 (Sky, Land, Ocean, Normal)
     private double factor;    // 倍率
     private String effect;    // 效果描述
-    private int coolDown;     // 技能冷卻時間 (秒)
-    private int pp;           // 剩餘可用次數
+    private Runnable normalAttack; 
 
     public Skill(String name, String type, double factor, String effect) {
         this.name = name;
         this.type = type;
         this.factor = factor;
         this.effect = effect;
-        this.coolDown = coolDown;
-        this.pp = pp;
     }
 
     public String getName() {
@@ -37,16 +34,8 @@ public class Skill {
         return effect;
     }
 
-    public int getCoolDown() {
-        return coolDown;
-    }
-
-    public int getPP() {
-        return pp;
-    }
-
     // 計算屬性克制倍率
-    private double calculateTypeEffectiveness(String attackerType, String defenderType) {
+    public static double calculateTypeEffectiveness(String attackerType, String defenderType) {
         if ((attackerType.equals("Sky") && defenderType.equals("Land")) ||
             (attackerType.equals("Land") && defenderType.equals("Ocean")) ||
             (attackerType.equals("Ocean") && defenderType.equals("Sky"))) {
@@ -61,29 +50,13 @@ public class Skill {
     }
 
     // 計算傷害 (based on ATK, DEF, factor, 屬性克制等)
-    public int calculateDamage(String attackerType, String defenderType, int atk, int def) {
+    public static int calculateDamage(Pokemon attacker, Pokemon defender, double factor) {
+        String attackerType = attacker.getType();
+        String defenderType = defender.getType(); 
+        int atk = attacker.getAtk(); 
+        int def = defender.getDef();
         double typeEffectiveness = calculateTypeEffectiveness(attackerType, defenderType);
         return (int) Math.max(1, (atk / (double) def) * factor * typeEffectiveness * 20);
-    }
-
-    // 扣PP
-    public void reducePP() {
-        if (this.pp > 0) {
-            this.pp--;
-        } else {
-            System.out.println(this.name + " 的 PP 已用完！");
-        }
-    }
-
-    // 動態設定冷卻與 PP based on HP, ATK, DEF, SPD 和技能倍率
-    public static int calculateCoolDown(int hp, int atk, int def, int spd, double factor) {
-        double coolDown = (hp / 400.0) + (atk / 300.0) + (def / 300.0) + (factor * 0.8) - (spd / 200.0);
-        return Math.max(1, Math.min(5, (int) Math.round(coolDown)));
-    }
-
-    public static int calculatePP(int hp, int atk, int def, int spd, double factor) {
-        double pp = 5.0 + (hp / 500.0) + (def / 400.0) - (atk / 300.0) + (spd / 250.0) - (factor * 1.2);
-        return Math.max(1, Math.min(10, (int) Math.round(pp)));
     }
 
     @Override
@@ -91,12 +64,10 @@ public class Skill {
         return "技能名稱: " + name + "\n" +
                "類型: " + type + "\n" +
                "倍率: " + factor + "\n" +
-               "效果: " + effect + "\n" +
-               "冷卻: " + coolDown + " 秒\n" +
-               "剩餘PP: " + pp;
+               "效果: " + effect + "\n";
     }
 
-      public static List<Skill> getSkillsForPokemon(Pokemon pokemon) {
+    public static List<Skill> getSkillsForPokemon(Pokemon pokemon) {
         List<Skill> skills = new ArrayList<>();
         String pokemonName = pokemon.getName();
         switch (pokemonName) {
@@ -132,8 +103,15 @@ public class Skill {
                 break;
             default:
                 System.out.println("No skills found for the specified Pokemon.");
-        }
+            }
         return skills;
+    }
+
+    public static Runnable normalAttack(Pokemon attacker, Pokemon defender) {
+        return () -> {
+            int damage = calculateDamage(attacker, defender, 1.0);
+            defender.takeDamage(damage);
+        };
     }
 
     // public static List<Skill> getSkillsForPokemon(String pokemonName, int hp, int atk, int def, int spd) {

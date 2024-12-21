@@ -30,6 +30,7 @@ public class GameUI {
             }
         };
 
+        
         // 設定背景面板布局為空
         backgroundPanel.setLayout(null);
 

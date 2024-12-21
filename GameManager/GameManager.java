@@ -12,7 +12,6 @@ import javax.swing.JTextArea;
 import Battle.Battle;
 import PlayerTeam.Player;
 import Pokemon.Pokemon;
-import Pokemon.PokemonTestExample;
 import Skills.Skill;
 import GameManager.MessageManager;
 
@@ -20,15 +19,15 @@ public class GameManager {
     private Player player1;
     private Player player2;
     private Battle battle;
-    private JLabel player1HealthLabel;
-    private JLabel player2HealthLabel;
-    private JProgressBar player1HealthBar;
-    private JProgressBar player2HealthBar;
-    private Player currentPlayer;
+    private static JLabel player1HealthLabel;
+    private static JLabel player2HealthLabel;
+    private static JProgressBar player1HealthBar;
+    private static JProgressBar player2HealthBar;
     private Pokemon player1Pokemon;
     private Pokemon player2Pokemon;
     private JLabel pokemonImageLabel;
 
+    public static int currentPlayer;
 
     public void initializeGame() {
         MessageManager.log("初始化遊戲...");
@@ -47,27 +46,18 @@ public class GameManager {
         player2.addPokemon(Pokemon.getPokemonByName("No.004"));
         player2.addPokemon(Pokemon.getPokemonByName("No.006"));
 
-        JPanel mainPanel = GameUI.getMainPanel();
-
-        currentPlayer = player1;
+        currentPlayer = 1;
         player1.setCurrentPokemon(0);
         player2.setCurrentPokemon(0);
 
         player1Pokemon = player1.getCurrentPokemon();
         player2Pokemon = player2.getCurrentPokemon();
 
-
-        initailHealthBars();
         // 建立玩家
-        
-
-        setSkillBtn(mainPanel, currentPlayer);
-
-        
         MessageManager.log("遊戲初始化完成！");
         MessageManager.log("");
 
-        // startGame();
+        startGame();        
     }
 
 
@@ -75,12 +65,13 @@ public class GameManager {
     public void startGame() {
         battle = new Battle(player1, player2);
         battle.startBattle();
+        initailHealthBars();
     }
 
     public void initailHealthBars() {
         // 初始化玩家 1 的血條
         player1HealthBar = createHealthBar(10, 180, 200, 30, player1Pokemon.getCurrentHealth());
-        player1HealthLabel = createHealthLabel(player1Pokemon.getName() + " HP: " + player1Pokemon.getCurrentHealth(), 10, 140, 100, 30);
+        player1HealthLabel = createHealthLabel(player1Pokemon.getName(), 10, 140, 100, 30);
         
 
         JPanel mainPanel = GameUI.getMainPanel();
@@ -88,7 +79,7 @@ public class GameManager {
         
         // 初始化玩家 2 的血條
         player2HealthBar = createHealthBar(windowWidth - 210, 180, 200, 30, player2Pokemon.getCurrentHealth());
-        player2HealthLabel = createHealthLabel(player2Pokemon.getName()+" HP: "+ player2Pokemon.getCurrentHealth(), windowWidth - 100, 140, 100, 30);
+        player2HealthLabel = createHealthLabel(player2Pokemon.getName(), windowWidth - 100, 140, 100, 30);
         setPokemonImage(mainPanel, player1Pokemon, 10, 140 * 2, 300, 300);
         setPokemonImage(mainPanel, player2Pokemon, windowWidth - 300, 140 * 2, 300, 300);
 
@@ -125,82 +116,39 @@ public class GameManager {
         JProgressBar healthBar = new JProgressBar();
         healthBar.setMinimum(0);
         healthBar.setMaximum(maxHealth);
-        healthBar.setValue(maxHealth);
-        healthBar.setStringPainted(true);
+        healthBar.setValue(maxHealth); // 初始值為最大血量
+        healthBar.setString(maxHealth + " / " + maxHealth); // 顯示實際數字
+        healthBar.setStringPainted(true); // 顯示文字
         healthBar.setBounds(x, y, width, height);
+        
+        // 設置字體更大
+        healthBar.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 20));
         return healthBar;
     }
+    
 
     // 通用方法：創建血量標籤
     private JLabel createHealthLabel(String text, int x, int y, int width, int height) {
         JLabel label = new JLabel(text);
         label.setBounds(x, y, width, height);
+        label.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 20));
         return label;
     }
 
     // 更新血量條的方法
-    public void updateLifeBars(int player1HP, int player2HP) {
+    public static void updateLifeBars(Pokemon player1, Pokemon player2) {
+
         // 更新玩家 1 的血條與標籤
-        player1HealthBar.setValue(player1HP);
-        player1HealthLabel.setText("Player 1 HP: " + player1HP);
+        player1HealthBar.setValue(player1.getCurrentHealth());
+        player1HealthBar.setString(player1.getCurrentHealth() + " / " + player1.getMaxHealth()); // 更新顯示文字
+        player1HealthLabel.setText(player1.getName() );
 
-        // 更新玩家 2 的血條與標籤
-        player2HealthBar.setValue(player2HP);
-        player2HealthLabel.setText("Player 2 HP: " + player2HP);
+        // // 更新玩家 2 的血條與標籤
+        player2HealthBar.setValue(player2.getCurrentHealth());
+        player2HealthBar.setString(player2.getCurrentHealth() + " / " + player2.getMaxHealth()); // 更新顯示文字
+        player2HealthLabel.setText(player2.getName());
     }
 
-    public void setSkillBtn(JPanel mainPanel, Player currentPlayer) {
-        if (currentPlayer == player1) {
-            int player1X = 100; // 玩家 1 的按鈕 X 坐標
-            int player1Y = mainPanel.getHeight() / 5; // 玩家 1 的起始 Y 坐標
-            setPlayerSkillButtons(mainPanel, player1X, player1Y * 3, player1Pokemon);
-
-        } else {
-            int player2X = mainPanel.getWidth() - 200; // 玩家 2 的按鈕 X 坐標 (右側)
-            int player2Y = mainPanel.getHeight() / 5; // 玩家 2 的起始 Y 坐標
-            setPlayerSkillButtons(mainPanel, player2X, player2Y * 3, player2Pokemon);
-        }
-    }
-    
-    private void setPlayerSkillButtons(JPanel mainPanel, int xPosition, int yStart, Pokemon pokemon) {
-        int yPosition = yStart;
-
-        // boolean isPlayerTurn = (currentPlayerTurn == player.getId());
-        for (int i = 0; i < 3; i++) {
-            Skill skill = pokemon.getSkill(i);
-            JButton skillButton = new JButton(skill.getName());
-            skillButton.setBounds(xPosition, yPosition, 100, 50);
-            yPosition += 60; // 每個按鈕之間間隔 60px
-
-            skillButton.addActionListener(e -> {
-                // onPlayerAction(); // 將行動傳遞到 Battle
-            });
-    
-            mainPanel.add(skillButton);
-        }
-    
-        // 撤退按鈕
-        JButton switchButton = new JButton("撤退");
-        switchButton.setBounds(xPosition, yPosition, 100, 50);
-        switchButton.addActionListener(e -> {
-            MessageManager.log(" 撤退，切換寶可夢！");
-            mainPanel.removeAll(); // 清空按鈕
-            mainPanel.revalidate();
-            mainPanel.repaint();
-        });
-        mainPanel.add(switchButton);
-    
-        mainPanel.revalidate();
-        mainPanel.repaint();
-    }
-
-    private void updateButtonVisibility(JPanel mainPanel) {
-        mainPanel.removeAll(); // 清空按鈕
-        setSkillBtn(mainPanel, currentPlayer); // 根據當前回合重新設置按鈕
-        mainPanel.revalidate();
-        mainPanel.repaint();
-    }
-    
     
 
     // public void setSkillBtn(Player player, JPanel mainPanel) {
