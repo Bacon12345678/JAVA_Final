@@ -2,17 +2,23 @@ package Battle;
 
 import java.util.Scanner;
 
-import PlayerTeam.PlayerTestExample;
+import javax.swing.JButton;
+
+import PlayerTeam.Player;
 import Pokemon.PokemonTestExample;
+import Skills.Skill;
 import GameManager.MessageManager;
 
 public class Battle {
-    private PlayerTestExample player1;
-    private PlayerTestExample player2;
-    private PlayerTestExample currentTurn;
+    private Player player1;
+    private Player player2;
+    private Player currentTurn;
+    private PokemonTestExample currentPlayer1Pokemon;
+    private PokemonTestExample currentPlayer2Pokemon;
+    private int playerTurn = 1;
     
 
-    public Battle(PlayerTestExample player1, PlayerTestExample player2) {
+    public Battle(Player player1, Player player2) {
         this.player1 = player1;
         this.player2 = player2;
         this.currentTurn = player1; // 預設玩家1先手
@@ -21,15 +27,15 @@ public class Battle {
     public void startBattle() {
         MessageManager.log("對戰開始！");
         MessageManager.log("");
-        while (!isGameOver()) {
-            playTurn(currentTurn);
-            switchTurn();
-        }
-        determineWinner();
+        // while (!isGameOver()) {
+        //     playTurn(currentTurn);
+        //     switchTurn();
+        // }
+        // determineWinner();
     }
 
-    private void playTurn(PlayerTestExample attacker) {
-        PlayerTestExample defender = (attacker == player1) ? player2 : player1;
+    private void playTurn(Player attacker) {
+        Player defender = (attacker == player1) ? player2 : player1;
         MessageManager.log(attacker.getName() + " 的回合！");
 
         PokemonTestExample attackerPokemon = attacker.getPokemon(0);
@@ -90,5 +96,19 @@ public class Battle {
         } else {
             MessageManager.log(player1.getName() + " 獲勝！");
         }
+    }
+
+    public void onPlayerAction(PlayerTestExample player, Skill skill) {
+        if ((playerTurn == 1 && player != player1) || (playerTurn == 2 && player != player2)) {
+            MessageManager.log("不是你的回合！");
+            return;
+        }
+
+        // 执行技能逻辑
+        PlayerTestExample defender = (player == player1) ? player2 : player1;
+        // executeSkill(player, defender, skill);
+
+        // 切换回合
+        switchTurn();
     }
 }

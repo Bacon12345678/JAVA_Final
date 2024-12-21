@@ -8,21 +8,24 @@ import GameManager.MessageManager;
 public class GameUI {
 
     public static JTextArea messageArea;
+    public static JFrame gamPanel;
+    public static JPanel backgroundPanel;
+
     public static void main(String[] args) {
         // 建立遊戲視窗
         
-        JFrame gameFrame = new JFrame("Pokemon山寨");
+        JFrame gameFrame = new JFrame("Pokemon");
 
         gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gameFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         gameFrame.setResizable(true); 
 
-        JPanel backgroundPanel = new JPanel() {
+        backgroundPanel = new JPanel() {
             // 自訂繪製方法
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                ImageIcon backgroundImage = new ImageIcon("pics/background.jpg");
+                ImageIcon backgroundImage = new ImageIcon("pics/Backgrounds/BackgroundDay.png");
                 g.drawImage(backgroundImage.getImage(), 0, 0, getWidth(), getHeight(), this);
             }
         };
@@ -31,7 +34,7 @@ public class GameUI {
         backgroundPanel.setLayout(null);
 
         // 新增一個按鈕
-        JButton startButton = new JButton("開始遊戲");
+        JButton startButton = new JButton("PVP對戰");
 
         // 將背景面板設置為 JFrame 的內容
         gameFrame.setContentPane(backgroundPanel);
@@ -82,10 +85,17 @@ public class GameUI {
         GameManager gameManager = new GameManager();
         startButton.addActionListener(e -> {
             gameManager.initializeGame();
+            startButton.setVisible(false);
         });
 
         // 顯示視窗
         gameFrame.setVisible(true);
     }
+
+    public static JPanel getMainPanel() {
+        return backgroundPanel;
+    }
+
+    
 }
 

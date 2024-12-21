@@ -1,40 +1,292 @@
 package GameManager;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.awt.Image;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
 import Battle.Battle;
-import PlayerTeam.PlayerTestExample;
+import PlayerTeam.Player;
+import Pokemon.Pokemon;
 import Pokemon.PokemonTestExample;
+import Skills.Skill;
 import GameManager.MessageManager;
 
 public class GameManager {
-    private PlayerTestExample player1;
-    private PlayerTestExample player2;
+    private Player player1;
+    private Player player2;
     private Battle battle;
+    private JLabel player1HealthLabel;
+    private JLabel player2HealthLabel;
+    private JProgressBar player1HealthBar;
+    private JProgressBar player2HealthBar;
+    private Player currentPlayer;
+    private Pokemon player1Pokemon;
+    private Pokemon player2Pokemon;
+    private JLabel pokemonImageLabel;
+
 
     public void initializeGame() {
         MessageManager.log("初始化遊戲...");
 
-        // 建立玩家
-        player1 = new PlayerTestExample("玩家1");
-        player2 = new PlayerTestExample("玩家2");
+        player1 = new Player("玩家1");
+        player2 = new Player("玩家2");
 
         // 添加寶可夢給玩家1
-        player1.addPokemon(new PokemonTestExample("妙蛙種子",  100));
-        player1.addPokemon(new PokemonTestExample("小火龍", 100));
+
+        player1.addPokemon(Pokemon.getPokemonByName("No.001"));
+        player1.addPokemon(Pokemon.getPokemonByName("No.003"));
+        player1.addPokemon(Pokemon.getPokemonByName("No.005"));
 
         // 添加寶可夢給玩家2
-        player2.addPokemon(new PokemonTestExample("傑尼龜", 100));
-        player2.addPokemon(new PokemonTestExample("皮卡丘", 100));
+        player2.addPokemon(Pokemon.getPokemonByName("No.002"));
+        player2.addPokemon(Pokemon.getPokemonByName("No.004"));
+        player2.addPokemon(Pokemon.getPokemonByName("No.006"));
 
+        JPanel mainPanel = GameUI.getMainPanel();
+
+        currentPlayer = player1;
+        player1.setCurrentPokemon(0);
+        player2.setCurrentPokemon(0);
+
+        player1Pokemon = player1.getCurrentPokemon();
+        player2Pokemon = player2.getCurrentPokemon();
+
+
+        initailHealthBars();
+        // 建立玩家
+        
+
+        setSkillBtn(mainPanel, currentPlayer);
+
+        
         MessageManager.log("遊戲初始化完成！");
         MessageManager.log("");
-        startGame();
+
+        // startGame();
     }
+
+
 
     public void startGame() {
         battle = new Battle(player1, player2);
         battle.startBattle();
     }
+
+    public void initailHealthBars() {
+        // 初始化玩家 1 的血條
+        player1HealthBar = createHealthBar(10, 180, 200, 30, player1Pokemon.getCurrentHealth());
+        player1HealthLabel = createHealthLabel(player1Pokemon.getName() + " HP: " + player1Pokemon.getCurrentHealth(), 10, 140, 100, 30);
+        
+
+        JPanel mainPanel = GameUI.getMainPanel();
+        int windowWidth = mainPanel.getWidth();
+        
+        // 初始化玩家 2 的血條
+        player2HealthBar = createHealthBar(windowWidth - 210, 180, 200, 30, player2Pokemon.getCurrentHealth());
+        player2HealthLabel = createHealthLabel(player2Pokemon.getName()+" HP: "+ player2Pokemon.getCurrentHealth(), windowWidth - 100, 140, 100, 30);
+        setPokemonImage(mainPanel, player1Pokemon, 10, 140 * 2, 300, 300);
+        setPokemonImage(mainPanel, player2Pokemon, windowWidth - 300, 140 * 2, 300, 300);
+
+        // 將所有元件加入主面板
+        
+        mainPanel.add(player1HealthBar);
+        mainPanel.add(player1HealthLabel);
+        mainPanel.add(player2HealthBar);
+        mainPanel.add(player2HealthLabel);
+
+        mainPanel.revalidate();
+        mainPanel.repaint();
+    }
+
+
+    public void setPokemonImage(JPanel mainPanel, Pokemon pokemon, int x, int y, int width, int height) {
+    
+        // 加載寶可夢圖片
+        ImageIcon icon = new ImageIcon(pokemon.getPokePic());
+        Image scaledImage = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        icon = new ImageIcon(scaledImage);
+    
+        // 使用 JLabel 顯示圖片
+        pokemonImageLabel = new JLabel(icon);
+        pokemonImageLabel.setBounds(x, y, width, height); // 設置圖片的位置和大小
+        mainPanel.add(pokemonImageLabel);
+    
+        mainPanel.revalidate();
+        mainPanel.repaint();
+    }
+
+    // 通用方法：創建血條
+    private JProgressBar createHealthBar(int x, int y, int width, int height, int maxHealth) {
+        JProgressBar healthBar = new JProgressBar();
+        healthBar.setMinimum(0);
+        healthBar.setMaximum(maxHealth);
+        healthBar.setValue(maxHealth);
+        healthBar.setStringPainted(true);
+        healthBar.setBounds(x, y, width, height);
+        return healthBar;
+    }
+
+    // 通用方法：創建血量標籤
+    private JLabel createHealthLabel(String text, int x, int y, int width, int height) {
+        JLabel label = new JLabel(text);
+        label.setBounds(x, y, width, height);
+        return label;
+    }
+
+    // 更新血量條的方法
+    public void updateLifeBars(int player1HP, int player2HP) {
+        // 更新玩家 1 的血條與標籤
+        player1HealthBar.setValue(player1HP);
+        player1HealthLabel.setText("Player 1 HP: " + player1HP);
+
+        // 更新玩家 2 的血條與標籤
+        player2HealthBar.setValue(player2HP);
+        player2HealthLabel.setText("Player 2 HP: " + player2HP);
+    }
+
+    public void setSkillBtn(JPanel mainPanel, Player currentPlayer) {
+        if (currentPlayer == player1) {
+            int player1X = 100; // 玩家 1 的按鈕 X 坐標
+            int player1Y = mainPanel.getHeight() / 5; // 玩家 1 的起始 Y 坐標
+            setPlayerSkillButtons(mainPanel, player1X, player1Y * 3, player1Pokemon);
+
+        } else {
+            int player2X = mainPanel.getWidth() - 200; // 玩家 2 的按鈕 X 坐標 (右側)
+            int player2Y = mainPanel.getHeight() / 5; // 玩家 2 的起始 Y 坐標
+            setPlayerSkillButtons(mainPanel, player2X, player2Y * 3, player2Pokemon);
+        }
+    }
+    
+    private void setPlayerSkillButtons(JPanel mainPanel, int xPosition, int yStart, Pokemon pokemon) {
+        int yPosition = yStart;
+
+        // boolean isPlayerTurn = (currentPlayerTurn == player.getId());
+        for (int i = 0; i < 3; i++) {
+            Skill skill = pokemon.getSkill(i);
+            JButton skillButton = new JButton(skill.getName());
+            skillButton.setBounds(xPosition, yPosition, 100, 50);
+            yPosition += 60; // 每個按鈕之間間隔 60px
+
+            skillButton.addActionListener(e -> {
+                // onPlayerAction(); // 將行動傳遞到 Battle
+            });
+    
+            mainPanel.add(skillButton);
+        }
+    
+        // 撤退按鈕
+        JButton switchButton = new JButton("撤退");
+        switchButton.setBounds(xPosition, yPosition, 100, 50);
+        switchButton.addActionListener(e -> {
+            MessageManager.log(" 撤退，切換寶可夢！");
+            mainPanel.removeAll(); // 清空按鈕
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        });
+        mainPanel.add(switchButton);
+    
+        mainPanel.revalidate();
+        mainPanel.repaint();
+    }
+
+    private void updateButtonVisibility(JPanel mainPanel) {
+        mainPanel.removeAll(); // 清空按鈕
+        setSkillBtn(mainPanel, currentPlayer); // 根據當前回合重新設置按鈕
+        mainPanel.revalidate();
+        mainPanel.repaint();
+    }
+    
+    
+
+    // public void setSkillBtn(Player player, JPanel mainPanel) {
+    //     // 獲取當前寶可夢的技能列表
+    //     List<Skill> skills = player.getCurrentPokemon().getSkills();
+    //     int yPosition = 100; // 起始位置
+
+    //     for (int i = 0; i < skills.size(); i++) {
+    //         Skill skill = skills.get(i);
+    //         JButton skillButton = new JButton(skill.getName()); // 按鈕名稱為技能名稱
+    //         skillButton.setBounds(10, yPosition, 100, 50); // 動態設置位置
+    //         yPosition += 60; // 每個按鈕之間間隔 60px
+
+    //         // 綁定技能使用事件
+    //         skillButton.addActionListener(e -> useSkill(player, skill, mainPanel));
+    //         mainPanel.add(skillButton);
+    //     }
+
+    //     // 撤退按鈕
+    //     JButton switchButton = new JButton("撤退");
+    //     switchButton.setBounds(10, yPosition, 100, 50);
+    //     switchButton.addActionListener(e -> {
+    //         MessageManager.log(player.getName() + " 撤退，切換寶可夢！");
+    //         player.choosePokemon(nextPokemonIndex()); // 切換到下一個寶可夢（需實現選擇邏輯）
+    //         mainPanel.removeAll(); // 清空按鈕
+    //         setSkillBtn(player, mainPanel); // 更新按鈕
+    //         mainPanel.revalidate();
+    //         mainPanel.repaint();
+    //     });
+    //     mainPanel.add(switchButton);
+
+    //     mainPanel.revalidate();
+    //     mainPanel.repaint();
+    // }
+    // public void setSkillBtn(Player player1, Player player2, JPanel mainPanel) {
+    //     // 設置玩家 1 的按鈕
+    //     int player1X = 100; // 玩家 1 的按鈕 X 坐標
+    //     int player1Y = mainPanel.getHeight() * 3 / 5; // 玩家 1 的起始 Y 坐標
+    //     setPlayerSkillButtons(player1, mainPanel, player1X, player1Y);
+    
+    //     // 設置玩家 2 的按鈕
+    //     int player2X = mainPanel.getWidth() - 200; // 玩家 2 的按鈕 X 坐標 (右側)
+    //     int player2Y = mainPanel.getHeight() * 3 / 5; // 玩家 2 的起始 Y 坐標
+    //     setPlayerSkillButtons(player2, mainPanel, player2X, player2Y);
+    // }
+    
+    // private void setPlayerSkillButtons(Player player, JPanel mainPanel, int xPosition, int yStart) {
+    //     List<Skill> skills = player.getCurrentPokemon().getSkills();
+    //     int yPosition = yStart;
+    
+    //     for (int i = 0; i < skills.size(); i++) {
+    //         Skill skill = skills.get(i);
+    //         JButton skillButton = new JButton(skill.getName());
+    //         skillButton.setBounds(xPosition, yPosition, 100, 50);
+    //         yPosition += 60; // 每個按鈕之間間隔 60px
+    
+    //         // 綁定技能事件
+    //         skillButton.addActionListener(e -> useSkill(player, skill, mainPanel));
+    //         mainPanel.add(skillButton);
+    //     }
+    
+    //     // 撤退按鈕
+    //     JButton switchButton = new JButton("撤退");
+    //     switchButton.setBounds(xPosition, yPosition, 100, 50);
+    //     switchButton.addActionListener(e -> {
+    //         MessageManager.log(player.getName() + " 撤退，切換寶可夢！");
+    //         player.choosePokemon(nextPokemonIndex(player)); // 切換寶可夢
+    //         mainPanel.removeAll(); // 清空按鈕
+    //         setSkillBtn(GameManager.getPlayer1(), GameManager.getPlayer2(), mainPanel); // 更新按鈕
+    //         mainPanel.revalidate();
+    //         mainPanel.repaint();
+    //     });
+    //     mainPanel.add(switchButton);
+    
+    //     mainPanel.revalidate();
+    //     mainPanel.repaint();
+    // }
+    
+    // private void updateButtonVisibility() {
+    //     mainPanel.removeAll(); // 清空按鈕
+    //     setSkillBtn(player1, player2, mainPanel, playerTurn); // 根據當前回合重新設置按鈕
+    //     mainPanel.revalidate();
+    //     mainPanel.repaint();
+    // }
+
+
+
 
 }

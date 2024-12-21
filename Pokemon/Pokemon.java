@@ -1,5 +1,7 @@
+package Pokemon;
 import java.util.ArrayList;
 import java.util.List;
+import Skills.*;
 
 /**
  * Represents a Pokemon with its basic attributes and battle capabilities.
@@ -11,10 +13,7 @@ public class Pokemon {
     private int maxHealth;
     private int currentHealth;
     private List<Skill> skills;
-    /* Status will be implemented later if needed
-     * 狀態（如正常、中毒、麻痺等，有這個設定的話再加）
-     */
-    //private String status;
+    private String imagePath;
 
     // Battle stats
     private int atk;
@@ -33,6 +32,7 @@ public class Pokemon {
         this.def = def;
         this.spd = spd;
         this.skills = new ArrayList<>();
+        this.imagePath = "pics/PokePic/" + number + ".png";
         //this.status = "Normal";  // Will be implemented later if needed
     }
 
@@ -45,6 +45,7 @@ public class Pokemon {
             target.takeDamage(damage);
         }
     }
+
 
     /**
      * Calculates damage based on the formula:
@@ -110,23 +111,45 @@ public class Pokemon {
     public int getDef() { return def; }
     public int getSpd() { return spd; }
 
+    public Skill getSkill(int index) {
+        return skills.get(index); 
+    }
+
+
     /**
      * Adds a skill to the Pokemon's skill list
      */
-    public void addSkill(Skill skill) {
-        skills.add(skill);
+    public void addSkills(List<Skill> skills) {
+        this.skills.addAll(skills);
     }
 
     // Static collection of all Pokemon data
     private static final List<Pokemon> ALL_POKEMON = new ArrayList<>();
+    
     static {
-        // Initialize all Pokemon based on the provided data
-        ALL_POKEMON.add(new Pokemon("001", "SKY", 100, 50, 30, 80));
-        ALL_POKEMON.add(new Pokemon("002", "SKY", 120, 40, 40, 60));
-        ALL_POKEMON.add(new Pokemon("003", "LAND", 150, 40, 40, 50));
-        ALL_POKEMON.add(new Pokemon("004", "LAND", 200, 20, 60, 30));
-        ALL_POKEMON.add(new Pokemon("005", "OCEAN", 70, 60, 20, 70));
-        ALL_POKEMON.add(new Pokemon("006", "OCEAN", 220, 30, 50, 40));
+        Pokemon P001 = new Pokemon("001", "SKY", 100, 50, 30, 80);
+        P001.addSkills(Skill.getSkillsForPokemon(P001));
+        ALL_POKEMON.add(P001);
+    
+        Pokemon P002 = new Pokemon("002", "SKY", 120, 40, 40, 60);
+        P002.addSkills(Skill.getSkillsForPokemon(P002));
+        ALL_POKEMON.add(P002);
+    
+        Pokemon P003 = new Pokemon("003", "LAND", 150, 40, 40, 50);
+        P003.addSkills(Skill.getSkillsForPokemon(P003));
+        ALL_POKEMON.add(P003);
+    
+        Pokemon P004 = new Pokemon("004", "LAND", 200, 20, 60, 30);
+        P004.addSkills(Skill.getSkillsForPokemon(P004));
+        ALL_POKEMON.add(P004);
+    
+        Pokemon P005 = new Pokemon("005", "OCEAN", 70, 60, 20, 70);
+        P005.addSkills(Skill.getSkillsForPokemon(P005));
+        ALL_POKEMON.add(P005);
+    
+        Pokemon P006 = new Pokemon("006", "OCEAN", 220, 30, 50, 40);
+        P006.addSkills(Skill.getSkillsForPokemon(P006));
+        ALL_POKEMON.add(P006);
     }
 
     /**
@@ -134,5 +157,18 @@ public class Pokemon {
      */
     public static List<Pokemon> getAllPokemon() {
         return new ArrayList<>(ALL_POKEMON);
+    }
+
+    public static Pokemon getPokemonByName(String name) {
+        for (Pokemon pokemon : ALL_POKEMON) {
+            if (pokemon.getName().equals(name)) {
+                return pokemon;
+            }
+        }
+        return null; // Return null if no matching Pokemon is found
+    }
+
+    public String getPokePic() {
+        return imagePath;
     }
 }
